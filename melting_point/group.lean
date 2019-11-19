@@ -462,6 +462,61 @@ instance im_is_subgroup {α : Type u} {β : Type v} [group α] [group β]
     apply congr_arg, exact h
   end }
 
+section
+  variables {α : Type u} {β : Type v} [group α] [group β] {φ : α ⤳ β}
+
+  def Im.mul (x y : Im φ) : Im φ := begin
+    induction x with x h, induction y with y g,
+    fapply subtype.mk, exact x * y,
+    induction h with u h, induction g with v g,
+    unfold im, existsi u * v,
+    cases φ with φ H, simp [*] at *,
+    rw [H u v, g, h]
+  end
+
+  instance : has_mul (Im φ) :=
+  ⟨Im.mul⟩
+
+  def Im.inv : Im φ → Im φ := begin
+    intro x, induction x with x h,
+    fapply subtype.mk, exact x⁻¹,
+    induction h with n h, unfold im,
+    existsi n⁻¹, rw [homo_respects_inv φ n, h]
+  end
+
+  instance : has_inv (Im φ) :=
+  ⟨Im.inv⟩
+
+  def Im.one : Im φ :=
+  ⟨1, ⟨1, homo_saves_unit φ⟩⟩
+
+  instance : has_one (Im φ) :=
+  ⟨Im.one⟩
+
+  theorem Im.mul_assoc (x y z : Im φ) : x * y * z = x * (y * z) := begin
+    induction x with x h, induction y with y g, induction z with z f,
+    apply subtype.eq, apply monoid.mul_assoc
+  end
+
+  theorem Im.mul_one (x : Im φ) : x * 1 = x :=
+  begin induction x with x h, apply subtype.eq, apply monoid.mul_one end
+
+  theorem Im.one_mul (x : Im φ) : 1 * x = x :=
+  begin induction x with x h, apply subtype.eq, apply monoid.one_mul end
+
+  theorem Im.mul_left_inv (x : Im φ) : x⁻¹ * x = 1 :=
+  begin induction x with x h, apply subtype.eq, apply mul_left_inv end
+
+  instance Im.is_group : group (Im φ) :=
+  { mul := Im.mul,
+    one := Im.one,
+    mul_assoc := Im.mul_assoc,
+    one_mul := Im.one_mul,
+    mul_one := Im.mul_one,
+    inv := Im.inv,
+    mul_left_inv := Im.mul_left_inv }
+end
+
 def tower {α : Type u} [group α] (a : α) :=
 { b // ∃ (n : ℤ), b = a^n }
 
