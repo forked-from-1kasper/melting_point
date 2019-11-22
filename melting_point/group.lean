@@ -517,6 +517,50 @@ section
     mul_left_inv := Im.mul_left_inv }
 end
 
+lemma mul_left_inv_inv {α : Type u} [group α] (a b : α) :
+  (b⁻¹ * a⁻¹) * (a * b) = 1 :=
+by rw [←monoid.mul_assoc, monoid.mul_assoc b⁻¹, mul_left_inv, monoid.mul_one, mul_left_inv]
+
+def ker.im {α : Type u} {β : Type v}
+  [group α] [group β] {φ : α ⤳ β} : α/ker φ → Im φ := begin
+  intro x, fapply @quot.hrec_on α (left_mul (ker φ)) _ x; clear x,
+  { intro x, existsi φ.val x, existsi x, trivial },
+  { intros a b h, apply heq_of_eq, apply subtype.eq,
+    unfold subtype.val, transitivity, symmetry, apply inv_of_inv,
+    apply inv_eq_of_mul_eq_one, rw [←homo_respects_inv φ a],
+    transitivity, symmetry, apply φ.property, assumption }
+end
+
+theorem «Fundamental theorem on homomorphisms» {α : Type u} {β : Type v}
+  [group α] [group β] {φ : α ⤳ β} : Im φ ≅ α/ker φ := begin
+  split, tactic.swap,
+  { intro x, cases x with x h,
+    apply factor.incl, exact classical.some h },
+  split,
+  { intros a b,
+    have p := classical.some_spec a.property,
+    have q := classical.some_spec b.property,
+    have r := classical.some_spec (a * b).property,
+    cases a with a h, cases b with b g,
+    cases h with u h, cases g with v g,
+    apply quot.sound, simp [left_mul, has_mem.mem, set.mem, ker, set_of],
+    cases φ with φ H, simp at *, rw [H, H, p, q],
+    transitivity, apply congr_arg (λ x, x * (a * b)),
+    transitivity, apply homo_respects_inv ⟨φ, H⟩,
+    transitivity, apply has_inv.inv # r,
+    apply inv_explode, apply mul_left_inv_inv },
+  split; existsi ker.im; funext,
+  { induction x, apply quot.sound, unfold left_mul,
+    simp [has_mem.mem, set.mem, ker, set_of],
+    transitivity, apply φ.property,
+    rw [homo_respects_inv], transitivity,
+    apply congr_arg (λ y, y⁻¹ * φ.val x),
+    have p := classical.some_spec (@ker.im._proof_1 _ _ _ _ φ x),
+    exact p, apply mul_left_inv, trivial },
+  { induction x with x h, apply subtype.eq,
+    apply classical.some_spec h }
+end
+
 def tower {α : Type u} [group α] (a : α) :=
 { b // ∃ (n : ℤ), b = a^n }
 
