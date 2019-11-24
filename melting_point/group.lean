@@ -93,8 +93,11 @@ end
 def commutes {α : Type u} [group α] (x y : α) :=
 x * y = y * x
 
+def zentrum (α : Type u) [group α] :=
+{ z : α | Π g, commutes z g }
+
 def Zentrum (α : Type u) [group α] :=
-{ z : α // Π g, commutes z g }
+subtype (zentrum α)
 
 def commutator {α : Type u} [group α] (g h : α) :=
 g⁻¹ * h⁻¹ * g * h
@@ -102,7 +105,7 @@ g⁻¹ * h⁻¹ * g * h
 def conjugate {α : Type u} [group α] (a x : α) :=
 x⁻¹ * a * x
 
-def conjugate_inv {α : Type u} [group α] (a x : α) :=
+def conjugate_rev {α : Type u} [group α] (a x : α) :=
 x * a * x⁻¹
 
 def right_div {α : Type u} [group α] (x y : α) := x * y⁻¹
@@ -170,14 +173,36 @@ end
 section
   variables {α : Type u} {β : Type v}
 
-  def linv (f : α → β) := ∃ (g : β → α), f ∘ g = id
-  def rinv (f : α → β) := ∃ (h : β → α), h ∘ f = id
-  def biinv (f : α → β) := linv f ∧ rinv f
+  def homotopy {α : Type u} {β : Type v} (f g : α → β) :=
+  Π x, f x = g x
+  infix ` ~ ` := homotopy
+
+  def linv (f : α → β) := ∃ g, g ∘ f ~ id
+  def rinv (f : α → β) := ∃ g, f ∘ g ~ id
+  def biinv (f : α → β) := rinv f ∧ linv f
+
+  def injection (f : α → β) :=
+  ∀ x y, f x = f y → x = y
+
+  def surjection (f : α → β) :=
+  ∀ y, ∃ x, y = f x
+
+  def equiv (α : Type u) (β : Type v) :=
+  ∃ (f : α → β), biinv f
+  infix ` ≃ `:25 := equiv
+
+  @[refl] theorem equiv.refl (α : Type u) : α ≃ α :=
+  begin existsi id, split; existsi id; intro x; reflexivity end
 
   def iso (α : Type u) (β : Type v) [group α] [group β] :=
   ∃ (f : α → β), is_homo f ∧ biinv f
-
   infix ` ≅ `:25 := iso
+
+  @[refl] theorem iso.refl (α : Type u) [group α] : α ≅ α := begin
+    existsi id, split,
+    { intros a b, trivial },
+    { split; existsi id; intro x; reflexivity }
+  end
 end
 
 class is_subgroup {α : Type u} [group α] (φ : set α) :=
@@ -226,8 +251,8 @@ end
 
 theorem conjugate_subgroup_eqv {α : Type u} [group α]
   (φ : set α) [is_normal_subgroup φ] (a x : α) :
-  conjugate a x ∈ φ → conjugate_inv a x ∈ φ := begin
-  intro H, simp [conjugate_inv], simp [conjugate] at H,
+  conjugate a x ∈ φ → conjugate_rev a x ∈ φ := begin
+  intro H, simp [conjugate_rev], simp [conjugate] at H,
   apply is_normal_subgroup.cosets_eqv,
   rw [←monoid.mul_assoc, mul_left_inv, monoid.one_mul],
   have G := is_normal_subgroup.cosets_eqv H,
@@ -549,7 +574,7 @@ theorem «Fundamental theorem on homomorphisms» {α : Type u} {β : Type v}
     transitivity, apply homo_respects_inv ⟨φ, H⟩,
     transitivity, apply has_inv.inv # r,
     apply inv_explode, apply mul_left_inv_inv },
-  split; existsi ker.im; funext,
+  split; existsi ker.im; intros x,
   { induction x, apply quot.sound, unfold left_mul,
     simp [has_mem.mem, set.mem, ker, set_of],
     transitivity, apply φ.property,
@@ -559,6 +584,12 @@ theorem «Fundamental theorem on homomorphisms» {α : Type u} {β : Type v}
     exact p, apply mul_left_inv, trivial },
   { induction x with x h, apply subtype.eq,
     apply classical.some_spec h }
+end
+
+instance abelian_subgroups {α : Type u} [comm_group α]
+  (φ : set α) [is_subgroup φ] : is_normal_subgroup φ := begin
+  apply is_normal_subgroup.mk, intros g h H,
+  rw [comm_group.mul_comm], assumption
 end
 
 def tower {α : Type u} [group α] (a : α) :=
