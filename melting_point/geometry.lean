@@ -12,8 +12,7 @@ class is_euclidian (S : Type u) :=
 (segment_construction (x y a b : S) :
   ∃ z, B x y z ∧ cong ⟨y, z⟩ ⟨a, b⟩)
 (five_segment (x y z x' y' z' u u' : S) :
-  x ≠ y →
-  B x y z → B x' y' z' →
+  x ≠ y → B x y z → B x' y' z' →
   cong ⟨x, y⟩ ⟨x', y'⟩ →
   cong ⟨y, z⟩ ⟨y', z'⟩ →
   cong ⟨x, u⟩ ⟨x', u'⟩ →
@@ -28,14 +27,13 @@ class is_euclidian (S : Type u) :=
   cong ⟨x, u⟩ ⟨x, v⟩ →
   cong ⟨y, u⟩ ⟨y, v⟩ →
   cong ⟨z, u⟩ ⟨z, v⟩ →
-  u ≠ v →
-  B x y z ∧ B y z x ∧ B z x y)
+  u ≠ v → B x y z ∧ B y z x ∧ B z x y)
 (axiom_of_Euclid (x y z u v : S) :
   B x u v → B y u z → x ≠ y →
   ∃ a b, B x y a ∧ B x z b ∧ B a v b)
 (axiom_schema_of_Continuity (φ ψ : S → Prop) :
-  (Σ' a, ∀ x y, φ x → ψ y → B a x y) →
-  (Σ' b, ∀ x y, φ x → ψ y → B x b y))
+  (∃ a, ∀ x y, φ x → ψ y → B a x y) →
+  (∃ b, ∀ x y, φ x → ψ y → B x b y))
 open is_euclidian
 
 notation a ` ≅ ` b := is_euclidian.cong a b
