@@ -295,26 +295,58 @@ section
       apply is_subgroup.inv, assumption }
   end
 
-  def factor_setoid (φ : set α) [is_subgroup φ] : setoid α :=
+  def normal_subgroup_cosets_eq {α : Type u} {φ : set α}
+    [group α] [is_normal_subgroup φ] : left_mul φ = right_mul φ :=
+  begin funext, apply propext, apply normal_subgroup_cosets end
+
+  def factor_setoid_left (φ : set α) [is_subgroup φ] : setoid α :=
   let insert (x y z : α) : x⁻¹ * z = (x⁻¹ * y) * (y⁻¹ * z) := calc
     x⁻¹ * z = x⁻¹ * 1 * z : by rw [group.mul_one]
         ... = x⁻¹ * (y * y⁻¹) * z : by rw [mul_right_inv]
         ... = (x⁻¹ * y) * (y⁻¹ * z) : by repeat { rw [group.mul_assoc] }; trivial in
   ⟨left_mul φ,
-    ⟨begin intro x, simp [left_mul], apply is_subgroup.unit end,
-     begin
-       intros x y H, simp [left_mul] at *,
-       rw [←inv_inv x, ←inv_explode],
-       apply is_subgroup.inv, assumption
-     end,
-     begin
-       intros x y z G H, simp [left_mul] at *,
-       rw [insert x y z], apply is_subgroup.mul; assumption
-     end⟩⟩
+   begin
+     split, intro x, simp [left_mul], apply is_subgroup.unit,
+     split, intros x y H, simp [left_mul] at *,
+     rw [←inv_inv x, ←inv_explode],
+     apply is_subgroup.inv, assumption,
+     intros x y z G H, simp [left_mul] at *,
+     rw [insert x y z], apply is_subgroup.mul; assumption
+   end⟩
+
+  def factor_setoid_right (φ : set α) [is_subgroup φ] : setoid α :=
+  let insert (x y z : α) : x * z⁻¹ = (x * y⁻¹) * (y * z⁻¹) := calc
+    x * z⁻¹ = x * 1 * z⁻¹ : by rw [group.mul_one]
+        ... = x * (y⁻¹ * y) * z⁻¹ : by rw [mul_left_inv]
+        ... = (x * y⁻¹) * (y * z⁻¹) : by repeat { rw [group.mul_assoc] }; trivial in
+  ⟨right_mul φ,
+   begin
+    split, intro x, simp [right_mul], apply is_subgroup.unit,
+    split, intros x y H, simp [right_mul] at *,
+    rw [←inv_inv y, ←inv_explode],
+    apply is_subgroup.inv, assumption,
+    intros x y z G H, simp [right_mul] at *,
+    rw [insert x y z], apply is_subgroup.mul; assumption
+   end⟩
 
   def factor (α : Type u) [group α] (φ : set α) [is_subgroup φ] :=
-  quotient (factor_setoid φ)
+  quotient (factor_setoid_left φ)
   infix `/` := factor
+
+  def factor_right (α : Type u) [group α] (φ : set α) [is_subgroup φ] :=
+  quotient (factor_setoid_right φ)
+  infix `\` := factor_right
+
+  def setoid.eq {α : Type} (x y : setoid α) (p : x.r = y.r) : x = y := begin
+    tactic.unfreeze_local_instances, induction x, induction y,
+    simp [*] at p, induction p, trivial
+  end
+
+  theorem factor_symmetry {α : Type} [group α]
+    (φ : set α) [is_normal_subgroup φ] : α/φ = α\φ := begin
+    apply congr_arg quotient,
+    apply setoid.eq, apply normal_subgroup_cosets_eq
+  end
 
   def factor.incl {α : Type u} {φ : set α}
     [group α] [is_normal_subgroup φ] : α → α/φ :=
@@ -322,7 +354,8 @@ section
 
   def factor.mul {α : Type u} {φ : set α}
     [group α] [is_normal_subgroup φ] (x y : α/φ) : α/φ := begin
-    apply @quotient.lift₂ α α _ (factor_setoid φ) (factor_setoid φ) _ _ x y,
+    apply @quotient.lift₂ α α _ (factor_setoid_left φ)
+                          (factor_setoid_left φ) _ _ x y,
     { intros a b, exact factor.incl (a * b) },
     { intros a b c d p q, funext r, apply quot.sound,
       simp [left_mul], rw [←group.mul_assoc, group.mul_assoc b⁻¹],
@@ -374,7 +407,7 @@ section
 
   def factor.inv {α : Type u} {φ : set α}
     [group α] [is_normal_subgroup φ] (x : α/φ) : α/φ := begin
-    apply @quotient.lift α (α/φ) (factor_setoid φ) _ _ x,
+    apply @quotient.lift α (α/φ) (factor_setoid_left φ) _ _ x,
     { intro x, exact factor.incl x⁻¹ },
     { intros u v H, apply quot.sound,
       unfold left_mul, rw [inv_inv],
