@@ -3,6 +3,10 @@ import melting_point.core
 namespace melting_point.graph
 universes u v
 
+def nat.cases {α : Sort u} (zero : α) (succ : α → α) : ℕ → α
+| 0       := zero
+| (n + 1) := succ (nat.cases n)
+
 inductive ord
 | zero
 | succ : ord → ord
@@ -17,15 +21,14 @@ instance : has_zero ord := ⟨ord.zero⟩
 instance : has_one ord  := ⟨ord.succ 0⟩
 instance : has_add ord  := ⟨ord.add⟩
 
-def ord.nat : ℕ → ord
-| 0       := 0
-| (n + 1) := ord.succ (ord.nat n)
+def ord.finite : ℕ → ord :=
+nat.cases ord.zero ord.succ
 
 inductive nonzero : ord → Prop
 | succ {x : ord}     : nonzero (ord.succ x)
 | lim  {f : ℕ → ord} : nonzero (ord.lim f)
 
-def ω := ord.lim ord.nat
+def ω := ord.lim ord.finite
 
 def graph (α : Type u) := α → α → ord
 
