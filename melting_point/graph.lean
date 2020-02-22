@@ -56,13 +56,15 @@ inductive Koenigsberg
 | Lomse    | Vorstadt
 
 namespace Koenigsberg
-  def G : Koenigsberg → Koenigsberg → Type
-  | Kneiphof Lomse    := 𝟏
-  | Altstadt Lomse    := 𝟏
-  | Lomse    Vorstadt := 𝟏
-  | Altstadt Kneiphof := 𝟐
-  | Altstadt Vorstadt := 𝟐
-  | _        _        := 𝟎
+  def G : graph Koenigsberg
+  | Kneiphof Lomse    := 1
+  | Altstadt Lomse    := 1
+  | Lomse    Vorstadt := 1
+  | Altstadt Kneiphof := 2
+  | Altstadt Vorstadt := 2
+  | _        _        := 0
+
+  def G' := undirected G
 end Koenigsberg
 
 end melting_point.graph
