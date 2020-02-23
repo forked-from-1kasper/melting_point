@@ -24,32 +24,54 @@ instance : has_add ord  := ⟨ord.add⟩
 def ord.finite : ℕ → ord :=
 nat.cases ord.zero ord.succ
 
-inductive nonzero : ord → Prop
-| succ {x : ord}     : nonzero (ord.succ x)
-| lim  {f : ℕ → ord} : nonzero (ord.lim f)
+inductive iszero : ord → Prop
+| intro : iszero 0
+
+instance iszero.dec : decidable_pred iszero := begin
+  intro x, cases x,
+  { apply decidable.is_true, exact iszero.intro },
+  repeat { apply decidable.is_false, intro h, cases h }
+end
+
+def nonzero : ord → Prop := not ∘ iszero
 
 def ω := ord.lim ord.finite
 
 def graph (α : Type u) := α → α → ord
 
-inductive path {α : Type u} (G : graph α) : α → α → Prop
-| intro {x y : α}   : nonzero (G x y) → path x y
-| trans {x y z : α} : path x y → path y z → path x z
+def flat {α : Type u} (G : graph α) : α → α → Prop :=
+λ x y, nonzero (G x y)
 
-def undirected {α : Type u} (G : graph α) : graph α :=
-λ x y, match G x y, G y x with
-| x, ord.zero := x
-| _, y        := y
-end
+inductive R {α : Type u} (φ : α → α → Prop) : α → α → Prop
+| refl  {x : α}   : R x x
+| intro {x y : α} : φ x y → R x y
+
+def S {α : Type u} (φ : α → α → Prop) :=
+λ x y, φ x y ∨ φ y x
+
+inductive T {α : Type u} (φ : α → α → Prop) : α → α → Prop
+| intro {x y : α}   : φ x y → T x y
+| trans {x y z : α} : T x y → T y z → T x z
+
+def E {α : Type u} (φ : α → α → Prop) := R (S (T φ))
+
+def way  {α : Type u} (G : graph α) := T (flat G)
+def path {α : Type u} (G : graph α) := E (flat G)
+
+def path.inj {α : Type u} (G : graph α) {x y : α} : way G x y → path G x y :=
+R.intro ∘ or.inl
+
+def unidirectional {α : Type u} (G : graph α) :=
+∀ x y, iszero (G x y) ∨ iszero (G y x)
 
 def acyclic {α : Type u} (G : graph α) : Prop :=
-∀ x, ¬path G x x
+∀ x, ¬way G x x
 
-def complete {α : Type u} (G : graph α) :=
-∀ x y, nonzero (G x y)
+def full {α : Type u} (φ : α → α → Prop) :=
+∀ x y, φ x y
 
-def connected {α : Type u} (G : graph α) :=
-∀ x y, path G x y
+def complete  {α : Type u} (G : graph α) := full (flat G)
+def connected {α : Type u} (G : graph α) := full (path G)
 
 def tree {α : Type u} (G : graph α) :=
 connected G ∧ acyclic G
@@ -66,8 +88,6 @@ namespace Koenigsberg
   | Altstadt Kneiphof := 2
   | Altstadt Vorstadt := 2
   | _        _        := 0
-
-  def G' := undirected G
 end Koenigsberg
 
 end melting_point.graph
