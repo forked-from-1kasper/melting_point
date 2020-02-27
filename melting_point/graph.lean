@@ -24,18 +24,17 @@ instance : has_add ord  := ⟨ord.add⟩
 def ord.finite : ℕ → ord :=
 nat.cases ord.zero ord.succ
 
+def ω := ord.lim ord.finite
+
 inductive iszero : ord → Prop
 | intro : iszero 0
+def nonzero : ord → Prop := not ∘ iszero
 
 instance iszero.dec : decidable_pred iszero := begin
   intro x, cases x,
   { apply decidable.is_true, exact iszero.intro },
   repeat { apply decidable.is_false, intro h, cases h }
 end
-
-def nonzero : ord → Prop := not ∘ iszero
-
-def ω := ord.lim ord.finite
 
 def graph (α : Type u) := α → α → ord
 
@@ -53,10 +52,10 @@ inductive T {α : Type u} (φ : α → α → Prop) : α → α → Prop
 | intro {x y : α}   : φ x y → T x y
 | trans {x y z : α} : T x y → T y z → T x z
 
-def E {α : Type u} (φ : α → α → Prop) := R (S (T φ))
+def equivalence {α : Type u} (φ : α → α → Prop) := R (S (T φ))
 
 def way  {α : Type u} (G : graph α) := T (flat G)
-def path {α : Type u} (G : graph α) := E (flat G)
+def path {α : Type u} (G : graph α) := equivalence (flat G)
 
 def path.inj {α : Type u} (G : graph α) {x y : α} : way G x y → path G x y :=
 R.intro ∘ or.inl
