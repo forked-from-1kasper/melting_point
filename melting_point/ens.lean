@@ -146,7 +146,8 @@ namespace ens
 
   def bool : ens := {∅, 𝟙}
   def not : bool ⟶ bool :=
-  function.intro (λ x, match prop_decidable (x = ∅) with
+  function.intro (λ x,
+  match prop_decidable (x = ∅) with
   | is_true _  := 𝟙
   | is_false _ := ∅
   end)
@@ -156,9 +157,9 @@ namespace ens
 
   def R : ens := comp (λ x, x ∉ x)
   def Russell : R ∈ R ↔ R ∉ R := begin
-    unfold R, split,
-    { intro H, rw [compβrule] at H, assumption },
-    { intro H, rw [compβrule], assumption }
+    unfold R, split; intro H,
+    { rw [compβrule] at H, assumption },
+    { rw [compβrule], assumption }
   end
 
   -- la fin
