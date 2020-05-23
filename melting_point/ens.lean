@@ -1,3 +1,5 @@
+-- Naive set theory
+
 noncomputable theory
 open classical
 
@@ -148,4 +150,14 @@ namespace ens
   | is_true _  := 𝟙
   | is_false _ := ∅
   end)
+
+  lemma univ_in_univ : univ ∈ univ :=
+  by simp [univ]
+
+  def R : ens := comp (λ x, x ∉ x)
+  def Russell : R ∈ R ↔ R ∉ R := begin
+    unfold R, split,
+    { intro H, rw [compβrule] at H, assumption },
+    { intro H, rw [compβrule], assumption }
+  end
 end ens
