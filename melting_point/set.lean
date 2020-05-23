@@ -44,4 +44,7 @@ theorem inter.id {α : Type u} (a : set α) : a ∩ a = a := begin
   { intro h, split, repeat { exact h } }
 end
 
+def countable {α : Type u} (s : set α) :=
+∃ (f : subtype s → ℕ), function.injective f
+
 end melting_point.set
