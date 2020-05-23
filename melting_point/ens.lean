@@ -160,4 +160,10 @@ namespace ens
     { intro H, rw [compβrule] at H, assumption },
     { intro H, rw [compβrule], assumption }
   end
+
+  def exfalso : false :=
+  match prop_decidable (R ∈ R) with
+  | is_true h  := absurd h (Russell.mp h)
+  | is_false h := absurd (Russell.mpr h) h
+  end
 end ens
