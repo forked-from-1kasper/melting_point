@@ -162,7 +162,7 @@ namespace ens
   end
 
   -- la fin
-  def exfalso : false :=
+  def falso : false :=
   match prop_decidable (R ∈ R) with
   | is_true h  := absurd h (Russell.mp h)
   | is_false h := absurd (Russell.mpr h) h
