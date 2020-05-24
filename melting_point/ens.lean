@@ -19,8 +19,12 @@ namespace ens
   ⟨setext.intro, setext.elim⟩
 
   def spec (f : ens → ens) := comp (λ y, ∃ x, f x = y)
-  def bimap (f : ens → ens → ens) :=
-  comp (λ x, ∃ u v, x = f u v)
+
+  def map (α β : ens) (f : ens → ens) :=
+  comp (λ y, ∃ x, x ∈ α ∧ y ∈ β ∧ f x = y)
+
+  def bimap (α β : ens) (f : ens → ens → ens) :=
+  comp (λ x, ∃ u v, u ∈ α ∧ v ∈ β ∧ x = f u v)
 
   def empty := comp (λ _, false)
 
@@ -64,8 +68,14 @@ namespace ens
 
   def unord (α β : ens) : ens := {α, β}
   def pair (α β : ens) : ens := {{α}, {α, β}}
-  def prod (α β : ens) : ens := bimap pair
+  def prod (α β : ens) : ens := bimap α β pair
   local infix × := prod
+
+  def prod.intro {α β x y : ens} : x ∈ α → y ∈ β → pair x y ∈ (α × β) := begin
+    intros h g, simp [pair, prod, bimap],
+    existsi x, existsi y, split,
+    exact h, split, exact g, trivial
+  end
 
   lemma unord.left {α β : ens} : α ∈ unord α β :=
   begin simp [unord, has_insert.insert, singleton] end
@@ -96,7 +106,7 @@ namespace ens
   def pair.eq {α β α' β' : ens} : pair α β = pair α' β' → α = α' ∧ β = β' := begin
     intro p, simp [pair] at p,
     cases unord.eq p with q,
-    { induction q with u v, 
+    { induction q with u v,
       have q := singleton.eq u, split,
       { assumption },
       { cases unord.eq v with x y,
@@ -121,24 +131,30 @@ namespace ens
 
   structure function (α β : ens) :=
   (map : ens) (sub : map ⊆ (α × β))
-  (uniq : ∀ u, u ∈ α → ∃! v, pair u v ∈ map)
+  (uniq : ∀ (u ∈ α), ∃! (v ∈ β), pair u v ∈ map)
 
   infix ` ⟶ `:30 := function
 
-  def function.intro {α β : ens} (f : ens → ens) : α ⟶ β :=
-  ⟨spec (λ x, pair x (f x)),
+  def function.intro {α β : ens}
+    (f : ens → ens) (cod : ∀ x, f x ∈ β) : α ⟶ β :=
+  ⟨map α (α × β) (λ x, pair x (f x)),
    begin
-     intros y p, simp [spec] at p,
-     induction p with x p, induction p,
-     simp [prod, bimap], existsi x, existsi f x,
-     trivial
+     intros y p, simp [map] at p,
+     induction p with x p,
+     induction p with u p,
+     induction p with v p,
+     exact v
    end,
    begin
      intros u p, existsi f u, split,
-     { simp [spec], existsi u, trivial },
-     { intros x q, simp [spec] at q, induction q with y q,
-       have r := pair.eq q, induction r with r s,
-       induction r, induction s, reflexivity }
+     { simp [map], existsi cod u, split,
+       existsi u, split, exact p, split,
+       apply prod.intro, exact p, exact cod u,
+       trivial, { intros G H, trivial } },
+     { intros x q, induction q with x q, induction q with q r, simp [map] at q,
+       induction q with y q, induction q with a q, induction q with b q,
+       have s := pair.eq q, induction s with s₁ s₂,
+       symmetry, induction s₁, assumption }
    end⟩
 
   def une : ens := {∅}
@@ -150,6 +166,11 @@ namespace ens
   match prop_decidable (x = ∅) with
   | is_true _  := 𝟙
   | is_false _ := ∅
+  end) (begin
+    intro x, simp [bool, has_insert.insert],
+    cases prop_decidable (x = ∅),
+    { right, apply singleton.id },
+    { left, trivial }
   end)
 
   lemma univ_in_univ : univ ∈ univ :=
