@@ -21,8 +21,8 @@ namespace cls
   comp (λ y, x = y ∨ y ∈ α)
   instance : has_insert ens cls := ⟨insert⟩
 
-  def sep (F : ens → Prop) (α : cls) :=
-  comp (λ x, x ∈ α ∧ F x)
+  def sep (φ : ens → Prop) (α : cls) :=
+  comp (λ x, x ∈ α ∧ φ x)
   instance : has_sep ens cls := ⟨sep⟩
 
   def union  (α β : cls) := {x ∈ α | x ∈ β}
@@ -49,5 +49,5 @@ namespace ens
   axiom inter     : ∀ α β, α ∈ V → β ∈ V → α ∩ β ∈ V
   axiom diff      : ∀ α β, α ∈ V → β ∈ V → α \ β ∈ V
   axiom powerset  : ∀ (α : cls), α ∈ V → 𝒫 α ∈ V
-  axiom sep       : ∀ (F : ens → Prop) (α : cls), α ∈ V → { x ∈ α | F x } ∈ V
+  axiom sep       : ∀ (φ : ens → Prop) (α : cls), α ∈ V → { x ∈ α | φ x } ∈ V
 end ens
