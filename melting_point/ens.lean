@@ -27,9 +27,9 @@ namespace cls
 
   def union  (α β : cls) := {x ∈ α | x ∈ β}
   def diff   (α β : cls) := {x ∈ α | x ∉ β}
-  def inter  (α β : cls) := comp (λ x, x ∈ α ∨ x ∈ β)
+  def inter  (α β : cls) := comp {x | x ∈ α ∨ x ∈ β}
   def subset (α β : cls) := ∀ x, x ∈ α → x ∈ β
-  def compl  (α : cls)   := comp (λ x, x ∉ α)
+  def compl  (α : cls)   := comp {x | x ∉ α}
 
   instance : has_emptyc cls := ⟨empty⟩
   instance : has_union  cls := ⟨union⟩
@@ -38,7 +38,7 @@ namespace cls
   instance : has_neg    cls := ⟨compl⟩
   instance : has_sdiff  cls := ⟨diff⟩
 
-  def powerset (α : cls) : cls := comp (λ β, β.val ⊆ α)
+  def powerset (α : cls) : cls := comp {β | β.val ⊆ α}
   prefix `𝒫`:100 := powerset
 end cls
 
