@@ -44,9 +44,9 @@ namespace ens
   @[simp] def insertβrule (x y : ens) (α : ens) : (x ∈ insert y α) = (y = x ∨ x ∈ α) := 
   by simp [insert]
 
-  def union (α β : ens) := {x ∈ α | x ∈ β}
+  def union (α β : ens) := comp (λ x, x ∈ α ∨ x ∈ β)
   def diff  (α β : ens) := {x ∈ α | x ∉ β}
-  def inter (α β : ens) : ens := comp (λ x, x ∈ α ∨ x ∈ β)
+  def inter (α β : ens) : ens := {x ∈ α | x ∈ β}
   def subset (α β : ens) := ∀ x, x ∈ α → x ∈ β
   def compl (α : ens) := comp (λ x, x ∉ α)
 

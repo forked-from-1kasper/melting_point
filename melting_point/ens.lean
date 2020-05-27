@@ -25,9 +25,9 @@ namespace cls
   comp (λ x, x ∈ α ∧ φ x)
   instance : has_sep ens cls := ⟨sep⟩
 
-  def union  (α β : cls) := {x ∈ α | x ∈ β}
+  def union  (α β : cls) := comp {x | x ∈ α ∨ x ∈ β}
   def diff   (α β : cls) := {x ∈ α | x ∉ β}
-  def inter  (α β : cls) := comp {x | x ∈ α ∨ x ∈ β}
+  def inter  (α β : cls) := {x ∈ α | x ∈ β}
   def subset (α β : cls) := ∀ x, x ∈ α → x ∈ β
   def compl  (α : cls)   := comp {x | x ∉ α}
 
