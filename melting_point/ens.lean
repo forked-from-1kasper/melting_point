@@ -38,6 +38,8 @@ namespace cls
   instance : has_neg    cls := ⟨compl⟩
   instance : has_sdiff  cls := ⟨diff⟩
 
+  instance : has_singleton ens cls := ⟨λ x, insert x ∅⟩
+
   def powerset (α : cls) : cls := comp {β | β.val ⊆ α}
   prefix `𝒫`:100 := powerset
 end cls

@@ -2,18 +2,17 @@ import melting_point.set
 open melting_point.set
 
 meta def tactic.interactive.enumeration : tactic unit :=
-`[ repeat { { apply or.inl, trivial } <|> apply or.inr } ]
+`[ repeat { { try { left }, try { change _ = _ }, trivial } <|> right } ]
 
 meta def tactic.interactive.sinduction
-  (q : interactive.parse interactive.types.texpr) : tactic unit := do
-  tactic.repeat (do
-    -- ???
-    tactic.i_to_expr q >>= tactic.induction,
-    tactic.i_to_expr q >>= tactic.rewrite_target,
-    tactic.i_to_expr q >>= tactic.clear,
-    tactic.swap),
-  tactic.i_to_expr q >>= tactic.induction,
-  pure ()
+  (e : interactive.parse interactive.types.texpr) : tactic unit :=
+tactic.repeat (do
+  -- ???
+  tactic.i_to_expr e >>= tactic.induction,
+  tactic.i_to_expr e >>= tactic.rewrite_target,
+  tactic.i_to_expr e >>= tactic.clear,
+  tactic.swap) >>
+(tactic.i_to_expr e >>= tactic.cases) >> pure ()
 
 meta def calcset : tactic unit := `[
   { funext x, induction x; apply propext; split; intro h;
@@ -28,7 +27,7 @@ meta def calcset : tactic unit := `[
 ]
 
 meta def findset : tactic unit :=
-`[ repeat { { apply or.inl, calcset, done } <|> apply or.inr } ]
+`[ repeat { { try { left }, calcset, done } <|> right } ]
 
 namespace melting_point.topology
 universe u
@@ -50,16 +49,18 @@ def trivial.open (α : Type u) : set (set α) :=
 
 def trivial (α : Type u) : topology α := begin
   fapply topology.mk, exact trivial.open α,
-  { apply or.inr, apply or.inl, trivial },
   { apply or.inl, trivial },
+  { apply or.inr, change _ = _, reflexivity },
   { intros u v a b,
     sinduction a; rw [inter.comm],
-    { rw [inter.empty], enumeration },
-    { rw [inter.univ], assumption } },
+    { change trivial.open α (v ∩ set.univ),
+      rw [inter.univ], assumption },
+    { rw [inter.empty], enumeration } },
   { intros u v a b,
     sinduction a; rw [union.comm],
-    { rw [union.empty], assumption },
-    { rw [union.univ], enumeration } }
+    { change trivial.open α (v ∪ set.univ),
+      rw [union.univ], enumeration },
+    { rw [union.empty], assumption } }
 end
 
 end melting_point.topology

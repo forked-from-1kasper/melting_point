@@ -56,6 +56,8 @@ namespace ens
   instance : has_subset ens := ⟨subset⟩
   instance : has_neg ens    := ⟨compl⟩
   instance : has_sdiff ens  := ⟨diff⟩
+  
+  instance : has_singleton ens ens := ⟨λ x, insert x ∅⟩
 
   def singleton.id {α : ens} : α ∈ (singleton α : ens) :=
   by simp [singleton, has_insert.insert]
@@ -81,7 +83,10 @@ namespace ens
   begin simp [unord, has_insert.insert, singleton] end
 
   lemma unord.right {α β : ens} : β ∈ unord α β :=
-  begin simp [unord, has_insert.insert] end
+  begin
+    simp [unord, has_insert.insert], right,
+    simp [has_singleton.singleton, insertβrule]
+  end
 
   def singleton.eq {α β : ens} : @eq ens {α} {β} → α = β := begin
     intro p, have q := (setext.elim p α).mp singleton.id,
@@ -168,9 +173,8 @@ namespace ens
   | is_false _ := ∅
   end) (begin
     intro x, simp [bool, has_insert.insert],
-    cases prop_decidable (x = ∅),
-    { right, apply singleton.id },
-    { left, trivial }
+    induction prop_decidable (x = ∅),
+    { left, trivial }, { right, apply singleton.id }
   end)
 
   lemma univ_in_univ : univ ∈ univ :=
